@@ -23,6 +23,8 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import confusion_matrix
+import Confusion_Matrix
 from sklearn.model_selection import KFold
 import itertools
 from sklearn.tree import export_graphviz
@@ -37,7 +39,7 @@ print(os.getcwd())
 # NOTE: Ändrat så att man hämtar filen i arbetskatalogen då slipper du skriva path
 # path = "/Users/Adam/PycharmProjects/Sommarforskning_test/Sepsis_test/"
 path = os.getcwd()
-item = "\Population_full.csv"
+item = "/Population_full.csv"
 
 df = pd.read_csv(path+item,';')
 display(df.head(5))
@@ -54,7 +56,7 @@ display(
 
  # df = df.drop(["Non_Survivors", "severe_sepsis], axis=1)
 features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns # Adam
-predict = 'Mortality7days'
+predict = 'Mortality30days'
 
 # A = df['Mortality7days']
 # type(A)
@@ -129,6 +131,8 @@ cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
 results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
+
+
 # Skapa objekt för medelvärde för beräkning
 dFrame = pd.DataFrame()
 index = 0
@@ -139,8 +143,13 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     scores.append((auc_score_train, auc_score))
     fprs.append(fpr)
     tprs.append(tpr)
+    # Skapa confusion matrix
+    predictions = clf.predict(X.iloc[test])
+    cm = confusion_matrix(y.iloc[test], predictions)
+    # print(cm)
+    Confusion_Matrix.plot_confusion_matrix(cm, classes=['Alive', 'Dead'], title='7-day mortality Confusion Matrix')
     # Debug Print Importance + Feature lista (10st med högsta värdena)
-    statistics.showStatistic(clf.feature_importances_, features)
+    # statistics.showStatistic(clf.feature_importances_, features)
 
     #-------- Create DataFrame table with all folders ------------------
     dFrame['importance_'+ str(index)] = clf.feature_importances_
@@ -156,7 +165,7 @@ dFrame['meanValue'] = featureMeanValueList
 writer = pd.ExcelWriter('meanValueFolderData.xlsx', engine='xlsxwriter')
 
 #--- Convert the meanvalue dataframe to an XlsxWriter Excel object -----
-dFrame.to_excel(writer, sheet_name='FolderData')
+dFrame.to_excel(writer, sheet_name=predict)
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
@@ -168,23 +177,7 @@ pd.DataFrame(scores, columns=['AUC Train', 'AUC Test'])
 
 print("===================================================")
 
-fig = plt.figure(figsize=(10, 9))
-ax = fig.add_subplot(111)
 
-print("SISTA UTSKRIFTEN")
-# Debug Print Importance + Feature lista (10st med högsta värdena)
-statistics.showStatistic(clf.feature_importances_, features)
-
-# df_f = pd.DataFrame(clf.feature_importances_, columns=["importance"])
-# df_f["labels"] = features
-# df_f.sort_values("importance", inplace=True, ascending=False)
-# display(df_f.head(10))
-
-index = np.arange(len(clf.feature_importances_))
-bar_width = 0.5
-rects = plt.barh(index, df_f["importance"], bar_width, alpha=0.4, color='b', label='Main')
-plt.yticks(index, df_f["labels"])
-# plt.show()
 
 # FIXME: Probe är okänd
 # df_test["prob_true"] = probs[:, 1]
