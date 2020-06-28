@@ -142,21 +142,21 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     # Debug Print Importance + Feature lista (10st med högsta värdena)
     statistics.showStatistic(clf.feature_importances_, features)
 
-    #-------- Create DataFrame table with all folders ----------------
+    #-------- Create DataFrame table with all folders ------------------
     dFrame['importance_'+ str(index)] = clf.feature_importances_
     dFrame.index = features
     index = index + 1
-    #------------------------------------------------------------------
+    #-------------------------------------------------------------------
 
-# Calculate meanvalue for each row
+#------------- Calculate meanvalue for each row ------------------------
 featureMeanValueList = dFrame.mean(axis=1)
 dFrame['meanValue'] = featureMeanValueList
 
 #------------ Export meanValue data table to Excel ---------------------
-writer = pd.ExcelWriter('pandas_simple.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter('meanValueFolderData.xlsx', engine='xlsxwriter')
 
-# Convert the dataframe to an XlsxWriter Excel object.
-dFrame.to_excel(writer, sheet_name='Sheet1')
+#--- Convert the meanvalue dataframe to an XlsxWriter Excel object -----
+dFrame.to_excel(writer, sheet_name='FolderData')
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
