@@ -30,7 +30,6 @@ from subprocess import call
 #from IPython.display import Image
 import os
 import statistics
-from meanvalue import meanValue
 
 
 print(os.getcwd())
@@ -130,9 +129,7 @@ cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
 results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
-# Skapa objekt för medelvärde
-# mv = meanValue(features)
-
+# Skapa objekt för medelvärde för beräkning
 dFrame = pd.DataFrame()
 index = 0
 for (train, test), i in zip(cv.split(X, y), range(10)):
@@ -155,6 +152,7 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
 featureMeanValueList = dFrame.mean(axis=1)
 dFrame['meanValue'] = featureMeanValueList
 
+#------------ Export meanValue data table to Excel ---------------------
 writer = pd.ExcelWriter('pandas_simple.xlsx', engine='xlsxwriter')
 
 # Convert the dataframe to an XlsxWriter Excel object.
@@ -162,8 +160,7 @@ dFrame.to_excel(writer, sheet_name='Sheet1')
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
-
-print("klar")
+#------------------------------------------------------------------------
 
 plot_roc_curve(fprs, tprs);
 
@@ -174,12 +171,14 @@ print("===================================================")
 fig = plt.figure(figsize=(10, 9))
 ax = fig.add_subplot(111)
 
-# Unknown folder statistic ??
 print("SISTA UTSKRIFTEN")
-df_f = pd.DataFrame(clf.feature_importances_, columns=["importance"])
-df_f["labels"] = features
-df_f.sort_values("importance", inplace=True, ascending=False)
-display(df_f.head(10))
+# Debug Print Importance + Feature lista (10st med högsta värdena)
+statistics.showStatistic(clf.feature_importances_, features)
+
+# df_f = pd.DataFrame(clf.feature_importances_, columns=["importance"])
+# df_f["labels"] = features
+# df_f.sort_values("importance", inplace=True, ascending=False)
+# display(df_f.head(10))
 
 index = np.arange(len(clf.feature_importances_))
 bar_width = 0.5
