@@ -1,10 +1,11 @@
-# Virtual Enviroment added modules
+# -------- Virtual Enviroment added modules ---------
 # pandas module
 # sklearn module
 # matplotlib module
 # IPython module
 # Imblearn module
-
+# xlsxwriter module
+# ---------------------------------------------------
 
 import pandas as pd
 # FIXME: Pandas module är version 1.05, du har ver 1.04
@@ -28,6 +29,10 @@ from sklearn.tree import export_graphviz
 from subprocess import call
 #from IPython.display import Image
 import os
+import statistics
+from meanvalue import meanValue
+
+
 print(os.getcwd())
 
 # NOTE: Ändrat så att man hämtar filen i arbetskatalogen då slipper du skriva path
@@ -108,6 +113,7 @@ def plot_roc_curve(fprs, tprs):
     ax.set_ylabel('True Positive Rate')
     ax.set_title('Receiver operating characteristic')
     ax.legend(loc="lower right")
+    # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
     plt.show()
     return (f, ax)
 
@@ -124,7 +130,11 @@ cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
 results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
+# Skapa objekt för medelvärde
+# mv = meanValue(features)
 
+dFrame = pd.DataFrame()
+index = 0
 for (train, test), i in zip(cv.split(X, y), range(10)):
     clf.fit(X.iloc[train], y.iloc[train])
     _, _, auc_score_train = compute_roc_auc(train)
@@ -132,8 +142,31 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     scores.append((auc_score_train, auc_score))
     fprs.append(fpr)
     tprs.append(tpr)
+    # Debug Print Importance + Feature lista (10st med högsta värdena)
+    statistics.showStatistic(clf.feature_importances_, features)
+
+    #-------- Create DataFrame table with all folders ----------------
+    dFrame['importance_'+ str(index)] = clf.feature_importances_
+    dFrame.index = features
+    index = index + 1
+    #------------------------------------------------------------------
+
+# Calculate meanvalue for each row
+featureMeanValueList = dFrame.mean(axis=1)
+dFrame['meanValue'] = featureMeanValueList
+
+writer = pd.ExcelWriter('pandas_simple.xlsx', engine='xlsxwriter')
+
+# Convert the dataframe to an XlsxWriter Excel object.
+dFrame.to_excel(writer, sheet_name='Sheet1')
+
+# Close the Pandas Excel writer and output the Excel file.
+writer.save()
+
+print("klar")
 
 plot_roc_curve(fprs, tprs);
+
 pd.DataFrame(scores, columns=['AUC Train', 'AUC Test'])
 
 print("===================================================")
@@ -141,6 +174,8 @@ print("===================================================")
 fig = plt.figure(figsize=(10, 9))
 ax = fig.add_subplot(111)
 
+# Unknown folder statistic ??
+print("SISTA UTSKRIFTEN")
 df_f = pd.DataFrame(clf.feature_importances_, columns=["importance"])
 df_f["labels"] = features
 df_f.sort_values("importance", inplace=True, ascending=False)
@@ -152,7 +187,8 @@ rects = plt.barh(index, df_f["importance"], bar_width, alpha=0.4, color='b', lab
 plt.yticks(index, df_f["labels"])
 # plt.show()
 
-df_test["prob_true"] = probs[:, 1]
-df_risky = df_test[df_test["prob_true"] > 0.9]
-display(df_risky.head(5)[["prob_true"]])
+# FIXME: Probe är okänd
+# df_test["prob_true"] = probs[:, 1]
+# df_risky = df_test[df_test["prob_true"] > 0.9]
+# display(df_risky.head(5)[["prob_true"]])
 
