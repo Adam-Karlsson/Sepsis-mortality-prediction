@@ -37,7 +37,7 @@ print(os.getcwd())
 # NOTE: Ändrat så att man hämtar filen i arbetskatalogen då slipper du skriva path
 # path = "/Users/Adam/PycharmProjects/Sommarforskning_test/Sepsis_test/"
 path = os.getcwd()
-item = "\Population_full.csv"
+item = "/Population_full.csv"
 
 df = pd.read_csv(path+item,';')
 display(df.head(5))
@@ -54,7 +54,7 @@ display(
 
  # df = df.drop(["Non_Survivors", "severe_sepsis], axis=1)
 features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns # Adam
-predict = 'Mortality7days'
+predict = 'Mortality30days'
 
 # A = df['Mortality7days']
 # type(A)
@@ -156,7 +156,7 @@ dFrame['meanValue'] = featureMeanValueList
 writer = pd.ExcelWriter('meanValueFolderData.xlsx', engine='xlsxwriter')
 
 #--- Convert the meanvalue dataframe to an XlsxWriter Excel object -----
-dFrame.to_excel(writer, sheet_name='FolderData')
+dFrame.to_excel(writer, sheet_name=predict)
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
