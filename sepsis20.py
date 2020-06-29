@@ -32,6 +32,7 @@ from subprocess import call
 #from IPython.display import Image
 import os
 import statistics
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 print(os.getcwd())
@@ -99,6 +100,7 @@ def plot_roc_curve(fprs, tprs):
     ax.plot(mean_fpr, mean_tpr, color='b',
             label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
             lw=2, alpha=.8)
+    print("mean_auc",mean_auc)
 
     # Plot the standard deviation around the mean ROC.
     std_tpr = np.std(tprs_interp, axis=0)
@@ -127,7 +129,10 @@ def compute_roc_auc(index):
 
 print("++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
+
+cv = StratifiedShuffleSplit(n_splits=10, test_size=0.2, train_size=0.8, random_state=0)
+
+# cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
 results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
@@ -147,7 +152,7 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     predictions = clf.predict(X.iloc[test])
     cm = confusion_matrix(y.iloc[test], predictions)
     # print(cm)
-    Confusion_Matrix.plot_confusion_matrix(cm, classes=['Alive', 'Dead'], title='7-day mortality Confusion Matrix')
+    #Confusion_Matrix.plot_confusion_matrix(cm, classes=['Alive', 'Dead'], title='7-day mortality Confusion Matrix')
     # Debug Print Importance + Feature lista (10st med högsta värdena)
     # statistics.showStatistic(clf.feature_importances_, features)
 
@@ -161,11 +166,17 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
 featureMeanValueList = dFrame.mean(axis=1)
 dFrame['meanValue'] = featureMeanValueList
 
+#------------- index column name ---------------------------------------
+dFrame.index.name = 'variables'
+
+#------------- sort ascending for mean value --------------------------
+dFrameSorted = dFrame.sort_values(by='meanValue', ascending=True)
+
 #------------ Export meanValue data table to Excel ---------------------
 writer = pd.ExcelWriter('meanValueFolderData.xlsx', engine='xlsxwriter')
 
 #--- Convert the meanvalue dataframe to an XlsxWriter Excel object -----
-dFrame.to_excel(writer, sheet_name=predict)
+dFrameSorted.to_excel(writer, sheet_name=predict)
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
@@ -178,9 +189,4 @@ pd.DataFrame(scores, columns=['AUC Train', 'AUC Test'])
 print("===================================================")
 
 
-
-# FIXME: Probe är okänd
-# df_test["prob_true"] = probs[:, 1]
-# df_risky = df_test[df_test["prob_true"] > 0.9]
-# display(df_risky.head(5)[["prob_true"]])
 
