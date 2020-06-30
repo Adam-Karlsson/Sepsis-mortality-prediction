@@ -59,25 +59,6 @@ def plot_roc_curve(fprs, tprs):
     print("mean_auc",mean_auc)
     return mean_auc
 
-    # Plot the standard deviation around the mean ROC.
-    std_tpr = np.std(tprs_interp, axis=0)
-    tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-    tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-    # ax.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
-
-    # Fine tune and show the plot.
-    # ax.set_xlim([-0.05, 1.05])
-    # ax.set_ylim([-0.05, 1.05])
-    # ax.set_xlabel('False Positive Rate')
-    # ax.set_ylabel('True Positive Rate')
-    # ax.set_title('Receiver operating characteristic')
-    # ax.legend(loc="lower right")
-    # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
-   # plt.show()
-   # return (f, ax)
-
-
-
 def compute_roc_auc(index):
     y_predict = clf.predict_proba(X.iloc[index])[:, 1]
     fpr, tpr, thresholds = roc_curve(y.iloc[index], y_predict)
@@ -105,7 +86,7 @@ max_x_scale = len(features)
 count = 0
 for index in list_of_features:
     # if index == 'Audiosensitivity':
-    #     break
+    #    break
 
     X = df.loc[:, features]
     y = df[predict]
@@ -117,7 +98,7 @@ for index in list_of_features:
         scores.append((auc_score_train, auc_score))
         fprs.append(fpr)
         tprs.append(tpr)
-    mean_auc = plot_roc_curve(fprs, tprs);
+    mean_auc = plot_roc_curve(fprs, tprs)
     print("mean auc", mean_auc)
     fprs.clear()
     tprs.clear()
@@ -132,6 +113,9 @@ ax = plt.gca()
 meanAucDf.plot(kind='line',x='numbers of features',y='mean auc',ax=ax)
 plt.title(predict)
 plt.xticks(np.arange(0, max_x_scale, step = 5))
+plt.minorticks_on()
+plt.savefig('meanAuc_vs_features.png', bbox_inches='tight')
+plt.savefig('meanAuc_vs_features.pdf', bbox_inches='tight')
 plt.show()
 
 

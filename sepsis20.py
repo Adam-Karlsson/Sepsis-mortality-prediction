@@ -31,7 +31,7 @@ print(os.getcwd())
 path = os.getcwd()
 item = "/Population_full.csv"
 
-df = pd.read_csv(path+item,';')
+df = pd.read_csv(path+item, ';')
 display(df.head(5))
 
 print("Number of rows: ", df.shape[0])
@@ -44,18 +44,13 @@ display(
     ).transpose()
 )
 
-# df = df.drop(["Non_Survivors", "severe_sepsis], axis=1)
-features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns # Adam
+features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns
 predict = 'Mortality7days'
-
-
-
 
 clf = BalancedRandomForestClassifier(n_estimators=100)
 
 X = df.loc[:, features]
 y = df[predict]
-
 
 def compute_roc_auc(index):
     y_predict = clf.predict_proba(X.iloc[index])[:, 1]
@@ -65,16 +60,13 @@ def compute_roc_auc(index):
 
 print("++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-
 cv = StratifiedShuffleSplit(n_splits=10, test_size=0.2, train_size=0.8, random_state=0)
 
 # cv = StratifiedKFold(n_splits=10, random_state=123, shuffle=True)
 results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
-
-
-# ------- Create empty lists ------------
+# ------- Create empty lists ----------
 sensitivity = []
 specificity = []
 ppv = []
@@ -103,7 +95,7 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     specificity_cm = cm[0, 0] / (cm[0, 0] + cm[0, 1])
     specificity.append(specificity_cm)
     # Calculate ppv
-    ppv_cm = cm[1, 1] / (cm[1, 1] + cm[0,1])
+    ppv_cm = cm[1, 1] / (cm[1, 1] + cm[0, 1])
     ppv.append(ppv_cm)
     # Calculate npv
     npv_cm = cm[0, 0] / (cm[0, 0] + cm[1, 0])
@@ -137,12 +129,12 @@ print('std sensitivity :', np.std(sensitivity))
 print()
 
 mean_specificity = sum(specificity) / len(specificity)
-print ('mean specificity :', mean_specificity)
+print('mean specificity :', mean_specificity)
 print('std specificity :', np.std(specificity))
 print()
 
 mean_ppv = sum(ppv) / len(ppv)
-print ('mean ppv :', mean_ppv)
+print('mean ppv :', mean_ppv)
 print('std ppv :', np.std(ppv))
 print()
 
@@ -182,10 +174,10 @@ writer.save()
 #---------------------------------------------------------------------------------------
 
 # ----------- Plot ROC curve showing the auc for each fold + mean auc and std ----------
-Plot_ROC_AUC.plot_roc_curve_Each_Fold(fprs, tprs);
+Plot_ROC_AUC.plot_roc_curve_Each_Fold(fprs, tprs, predict)
 
 # ----------- Plot Roc curve showing only mean auc + std -------------------------------
-Plot_ROC_AUC.plot_roc_curve_only_mean(fprs, tprs);
+Plot_ROC_AUC.plot_roc_curve_only_mean(fprs, tprs, predict)
 
 
 

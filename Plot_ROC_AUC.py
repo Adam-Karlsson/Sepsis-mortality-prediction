@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 
-def plot_roc_curve_Each_Fold(fprs, tprs):
+def plot_roc_curve_Each_Fold(fprs, tprs, predict):
     """Plot the Receiver Operating Characteristic from a list
     of true positive rates and false positive rates."""
 
@@ -30,7 +30,7 @@ def plot_roc_curve_Each_Fold(fprs, tprs):
     mean_auc = auc(mean_fpr, mean_tpr)
     std_auc = np.std(aucs)
     ax.plot(mean_fpr, mean_tpr, color='b',
-            label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
+            label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, float(std_auc)),
             lw=2, alpha=.8)
     print("mean_auc :",mean_auc)
     print('std auc :', std_auc)
@@ -50,13 +50,17 @@ def plot_roc_curve_Each_Fold(fprs, tprs):
     ax.set_title('Receiver operating characteristic')
     ax.legend(loc="lower right")
     # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
+
+    plt.title(predict)
+    plt.savefig('aucAllFolds.png', bbox_inches='tight')
+    plt.savefig('aucAllFolds.pdf', bbox_inches='tight')
     plt.show()
-    return (f, ax)
+    return f, ax
 
 
 
 # This def is similar to the one above with the exception of removing the plot of auc for each fold.
-def plot_roc_curve_only_mean(fprs, tprs):
+def plot_roc_curve_only_mean(fprs, tprs, predict):
     """Plot the Receiver Operating Characteristic from a list
     of true positive rates and false positive rates."""
 
@@ -84,7 +88,7 @@ def plot_roc_curve_only_mean(fprs, tprs):
     mean_auc = auc(mean_fpr, mean_tpr)
     std_auc = np.std(aucs)
     ax.plot(mean_fpr, mean_tpr, color='b',
-            label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
+            label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, float(std_auc)),
             lw=2, alpha=.8)
 
     # Plot the standard deviation around the mean ROC.
@@ -102,5 +106,9 @@ def plot_roc_curve_only_mean(fprs, tprs):
     ax.set_title('Receiver operating characteristic')
     ax.legend(loc="lower right")
     # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
+
+    plt.title(predict)
+    plt.savefig('meanAuc.png', bbox_inches='tight')
+    plt.savefig('meanAuc.pdf', bbox_inches='tight')
     plt.show()
-    return (f, ax)
+    return f, ax
