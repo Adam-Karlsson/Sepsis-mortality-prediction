@@ -9,30 +9,19 @@
 
 import pandas as pd
 # FIXME: Pandas module är version 1.05, du har ver 1.04
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_curve, auc
-import matplotlib
 # FIXME: Matplotlib är version 3.2.2, du har version 3.2.1
 import matplotlib.pyplot as plt
 from IPython.display import display, HTML
 # FIXME: IPython module ör version 7.16.1, du har version 7.15.0
 import numpy as np
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
-import Confusion_Matrix
-from sklearn.model_selection import KFold
-import itertools
-from sklearn.tree import export_graphviz
-from subprocess import call
-#from IPython.display import Image
 import os
-import statistics
+import statistics_feature_importance
 from sklearn.model_selection import StratifiedShuffleSplit
+import Plot_ROC_AUC
 
 
 print(os.getcwd())
@@ -55,12 +44,10 @@ display(
     ).transpose()
 )
 
- # df = df.drop(["Non_Survivors", "severe_sepsis], axis=1)
+# df = df.drop(["Non_Survivors", "severe_sepsis], axis=1)
 features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns # Adam
-predict = 'Mortality30days'
+predict = 'Mortality7days'
 
-# A = df['Mortality7days']
-# type(A)
 
 
 
@@ -68,57 +55,6 @@ clf = BalancedRandomForestClassifier(n_estimators=100)
 
 X = df.loc[:, features]
 y = df[predict]
-
-def plot_roc_curve(fprs, tprs):
-    """Plot the Receiver Operating Characteristic from a list
-    of true positive rates and false positive rates."""
-
-    # Initialize useful lists + the plot axes.
-    tprs_interp = []
-    aucs = []
-    mean_fpr = np.linspace(0, 1, 100)
-    f, ax = plt.subplots(figsize=(14, 10))
-
-    # Plot ROC for each K-Fold + compute AUC scores.
-    for i, (fpr, tpr) in enumerate(zip(fprs, tprs)):
-        tprs_interp.append(np.interp(mean_fpr, fpr, tpr))
-        tprs_interp[-1][0] = 0.0
-        roc_auc = auc(fpr, tpr)
-        aucs.append(roc_auc)
-        ax.plot(fpr, tpr, lw=1, alpha=0.3,
-                label='ROC fold %d (AUC = %0.2f)' % (i, roc_auc))
-
-    # Plot the luck line.
-    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
-             label='Luck', alpha=.8)
-
-    # Plot the mean ROC.
-    mean_tpr = np.mean(tprs_interp, axis=0)
-    mean_tpr[-1] = 1.0
-    mean_auc = auc(mean_fpr, mean_tpr)
-    std_auc = np.std(aucs)
-    ax.plot(mean_fpr, mean_tpr, color='b',
-            label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc),
-            lw=2, alpha=.8)
-    print("mean_auc",mean_auc)
-
-    # Plot the standard deviation around the mean ROC.
-    std_tpr = np.std(tprs_interp, axis=0)
-    tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-    tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-    ax.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
-                    label=r'$\pm$ 1 std. dev.')
-
-    # Fine tune and show the plot.
-    ax.set_xlim([-0.05, 1.05])
-    ax.set_ylim([-0.05, 1.05])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
-    ax.set_title('Receiver operating characteristic')
-    ax.legend(loc="lower right")
-    # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
-    plt.show()
-    return (f, ax)
 
 
 def compute_roc_auc(index):
@@ -138,6 +74,14 @@ fprs, tprs, scores = [], [], []
 
 
 
+# ------- Create empty lists ------------
+sensitivity = []
+specificity = []
+ppv = []
+npv = []
+LR_pos = []
+LR_neg = []
+
 # Skapa objekt för medelvärde för beräkning
 dFrame = pd.DataFrame()
 index = 0
@@ -148,43 +92,102 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     scores.append((auc_score_train, auc_score))
     fprs.append(fpr)
     tprs.append(tpr)
-    # Skapa confusion matrix
+    # Calculate confusion matrix
     predictions = clf.predict(X.iloc[test])
     cm = confusion_matrix(y.iloc[test], predictions)
     # print(cm)
-    #Confusion_Matrix.plot_confusion_matrix(cm, classes=['Alive', 'Dead'], title='7-day mortality Confusion Matrix')
-    # Debug Print Importance + Feature lista (10st med högsta värdena)
-    # statistics.showStatistic(clf.feature_importances_, features)
+    # Calculate sensitivity
+    sensitivity_cm = cm[1, 1] / (cm[1, 0] + cm[1, 1])
+    sensitivity.append(sensitivity_cm)
+    # Calculate specificity
+    specificity_cm = cm[0, 0] / (cm[0, 0] + cm[0, 1])
+    specificity.append(specificity_cm)
+    # Calculate ppv
+    ppv_cm = cm[1, 1] / (cm[1, 1] + cm[0,1])
+    ppv.append(ppv_cm)
+    # Calculate npv
+    npv_cm = cm[0, 0] / (cm[0, 0] + cm[1, 0])
+    npv.append(npv_cm)
+    # Calculate LR+
+    LR_pos_cm = sensitivity_cm / (1 - specificity_cm)
+    LR_pos.append(LR_pos_cm)
+    # Calculate LR-
+    LR_neg_cm = (1 - sensitivity_cm) / specificity_cm
+    LR_neg.append(LR_neg_cm)
 
-    #-------- Create DataFrame table with all folders ------------------
+    # ------------ Code below plots the confusion matrix ----------------------------------
+    # Confusion_Matrix.plot_confusion_matrix(cm, classes=['Alive', 'Dead'], title='7-day mortality Confusion Matrix')
+    # ------------ Code below show the 10 variables with highest feature importance --------
+    # statistics_feature_importance.showStatistic(clf.feature_importances_, features)
+
+    #----- Create DataFrame table with feature importance from all folders -----------------
     dFrame['importance_'+ str(index)] = clf.feature_importances_
     dFrame.index = features
     index = index + 1
-    #-------------------------------------------------------------------
+    #---------------------------------------------------------------------------------------
 
-#------------- Calculate meanvalue for each row ------------------------
+print('------------------------------------------------------')
+
+print('Accuracy', predict)
+print()
+#---------------Calculate mean values for sens, spec, etc.. -------------------------
+mean_sensitivity = sum(sensitivity) / len(sensitivity)
+print('mean sensitivity :', mean_sensitivity)
+print('std sensitivity :', np.std(sensitivity))
+print()
+
+mean_specificity = sum(specificity) / len(specificity)
+print ('mean specificity :', mean_specificity)
+print('std specificity :', np.std(specificity))
+print()
+
+mean_ppv = sum(ppv) / len(ppv)
+print ('mean ppv :', mean_ppv)
+print('std ppv :', np.std(ppv))
+print()
+
+mean_npv = sum(npv) / len(npv)
+print('mean npv :', mean_npv)
+print('std npv :', np.std(npv))
+print()
+
+mean_LR_pos = sum(LR_pos) / len(LR_pos)
+print('mean LR+ :', mean_LR_pos)
+print('std LR+ :', np.std(LR_pos))
+print()
+
+mean_LR_neg = sum(LR_neg) / len(LR_neg)
+print('mean LR- :', mean_LR_neg)
+print('std LR- :', np.std(LR_neg))
+print()
+
+#------------- Calculate meanvalue for feature importance ------------------------------
 featureMeanValueList = dFrame.mean(axis=1)
 dFrame['meanValue'] = featureMeanValueList
 
-#------------- index column name ---------------------------------------
+#------------- index column name -------------------------------------------------------
 dFrame.index.name = 'variables'
 
-#------------- sort ascending for mean value --------------------------
+#------------- sort ascending for mean value -------------------------------------------
 dFrameSorted = dFrame.sort_values(by='meanValue', ascending=True)
 
-#------------ Export meanValue data table to Excel ---------------------
+#------------ Export meanValue data table to Excel -------------------------------------
 writer = pd.ExcelWriter('meanValueFolderData.xlsx', engine='xlsxwriter')
 
-#--- Convert the meanvalue dataframe to an XlsxWriter Excel object -----
+#--- Convert the meanvalue dataframe to an XlsxWriter Excel object ---------------------
 dFrameSorted.to_excel(writer, sheet_name=predict)
 
 # Close the Pandas Excel writer and output the Excel file.
 writer.save()
-#------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 
-plot_roc_curve(fprs, tprs);
+# ----------- Plot ROC curve showing the auc for each fold + mean auc and std ----------
+Plot_ROC_AUC.plot_roc_curve_Each_Fold(fprs, tprs);
 
-pd.DataFrame(scores, columns=['AUC Train', 'AUC Test'])
+# ----------- Plot Roc curve showing only mean auc + std -------------------------------
+Plot_ROC_AUC.plot_roc_curve_only_mean(fprs, tprs);
+
+
 
 print("===================================================")
 

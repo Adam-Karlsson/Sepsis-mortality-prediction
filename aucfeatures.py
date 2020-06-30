@@ -1,32 +1,16 @@
-
 import pandas as pd
 # FIXME: Pandas module är version 1.05, du har ver 1.04
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_curve, auc
-import matplotlib
 # FIXME: Matplotlib är version 3.2.2, du har version 3.2.1
 import matplotlib.pyplot as plt
-from IPython.display import display, HTML
 # FIXME: IPython module ör version 7.16.1, du har version 7.15.0
 import numpy as np
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import confusion_matrix
-import Confusion_Matrix
-from sklearn.model_selection import KFold
-import itertools
-from sklearn.tree import export_graphviz
-from subprocess import call
-#from IPython.display import Image
 import os
-import statistics
 from sklearn.model_selection import StratifiedShuffleSplit
 
-
+# ----- iteration of models developed using 91 features - 1 in each loop. Plot curve: AUC vs numbers of features.
 
 path = os.getcwd()
 item = "/Population_full.csv"
@@ -113,7 +97,7 @@ fprs, tprs, scores = [], [], []
 
 # Skapa dataframe för mean auc vs number of features
 meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc'])
-# meanAucDf.index.name = 'numbers of features'
+
 
 
 
@@ -147,7 +131,6 @@ ax = plt.gca()
 
 meanAucDf.plot(kind='line',x='numbers of features',y='mean auc',ax=ax)
 plt.title(predict)
-# plt.xlim(0,max_x_scale)
 plt.xticks(np.arange(0, max_x_scale, step = 5))
 plt.show()
 
