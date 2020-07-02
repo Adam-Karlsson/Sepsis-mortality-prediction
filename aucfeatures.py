@@ -10,6 +10,7 @@ from sklearn.model_selection import StratifiedKFold
 import os
 from sklearn.model_selection import StratifiedShuffleSplit
 
+
 # ----- iteration of models developed using 91 features - 1 in each loop. Plot curve: AUC vs numbers of features.
 
 path = os.getcwd()
@@ -56,8 +57,16 @@ def plot_roc_curve(fprs, tprs):
     mean_auc = auc(mean_fpr, mean_tpr)
     std_auc = np.std(aucs)
     # ax.plot(mean_fpr, mean_tpr, color='b', label=r'Mean ROC (AUC = %0.2f $\pm$ %0.2f)' % (mean_auc, std_auc), lw=2, alpha=.8)
-    print("mean_auc",mean_auc)
-    return mean_auc
+    # print("mean_auc",mean_auc)
+
+#TODO beräknar vad tprs_upper och tprs_lower är för något.
+    # Plot the standard deviation around the mean ROC.
+    std_tpr = np.std(tprs_interp, axis=0)
+    tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
+    tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
+    # ax.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
+ #TODO returar tprs_upper, tprs_lower och mean_fpr
+    return mean_auc, tprs_upper, tprs_lower, mean_fpr
 
 def compute_roc_auc(index):
     y_predict = clf.predict_proba(X.iloc[index])[:, 1]
@@ -75,9 +84,9 @@ results = pd.DataFrame(columns=['training_score', 'test_score'])
 fprs, tprs, scores = [], [], []
 
 
-
+#TODO skapar kolumnar för de nya värdena i dataframe.
 # Skapa dataframe för mean auc vs number of features
-meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc'])
+meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc', 'tprs_upper', 'tprs_lower', 'mean_fpr'])
 
 
 
@@ -85,8 +94,8 @@ meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc'])
 max_x_scale = len(features)
 count = 0
 for index in list_of_features:
-    # if index == 'Audiosensitivity':
-    #    break
+    if index == 'Audiosensitivity':
+        break
 
     X = df.loc[:, features]
     y = df[predict]
@@ -98,22 +107,29 @@ for index in list_of_features:
         scores.append((auc_score_train, auc_score))
         fprs.append(fpr)
         tprs.append(tpr)
-    mean_auc = plot_roc_curve(fprs, tprs)
-    print("mean auc", mean_auc)
+    result_auc = plot_roc_curve(fprs, tprs)
+    print("mean auc :", result_auc[0])
     fprs.clear()
     tprs.clear()
     scores.clear()
-    meanAucDf.loc[count] = [len(features), mean_auc]
+    #TODO lägger till tprs_upper, tprs_lower, mean_fpr i dataframe
+    meanAucDf.loc[count] = [len(features), result_auc[0], result_auc[1], result_auc[2], result_auc[3]]
     count = count + 1
     print("dropping", index)
     features = features.drop(index)
 
+plt.rcParams["figure.figsize"] = (20, 4.8)
 ax = plt.gca()
+#TODO fylla upp området mellan tprs_lower och tprs_upper
+ax.fill_between(meanAucDf['mean_fpr'], meanAucDf['tprs_lower'], meanAucDf['tprs_upper'], color='grey', alpha=.2,
+                    label=r'$\pm$ 1 std. dev.')
+
 
 meanAucDf.plot(kind='line',x='numbers of features',y='mean auc',ax=ax)
 plt.title(predict)
 plt.xticks(np.arange(0, max_x_scale, step = 5))
 plt.minorticks_on()
+
 plt.savefig('meanAuc_vs_features.png', bbox_inches='tight')
 plt.savefig('meanAuc_vs_features.pdf', bbox_inches='tight')
 plt.show()

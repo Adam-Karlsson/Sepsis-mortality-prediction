@@ -35,17 +35,11 @@ df = pd.read_csv(path+item, ';')
 display(df.head(5))
 
 print("Number of rows: ", df.shape[0])
-counts = df.describe().iloc[0]
-display(
-    pd.DataFrame(
-        counts.tolist(),
-        columns=["Count of values"],
-        index=counts.index.values
-    ).transpose()
-)
+counts = df.describe(include = 'all').iloc[0]
+display(pd.DataFrame(counts.tolist(), columns=["Count of values"], index=counts.index.values).transpose())
 
 features = df.drop(["ID", "Ålder", "Daysinadmission", "Död", "Daystodeath", "MortalityInhospital", "Mortality1day", "Mortality7days", "Mortality30days", "Mortality1Year", "Survival7days", "Prio", "Kön", "severe_sepsis"], axis=1).columns
-predict = 'Mortality7days'
+predict = 'Mortality30days'
 
 clf = BalancedRandomForestClassifier(n_estimators=100)
 
@@ -87,7 +81,7 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     # Calculate confusion matrix
     predictions = clf.predict(X.iloc[test])
     cm = confusion_matrix(y.iloc[test], predictions)
-    # print(cm)
+    print(cm)
     # Calculate sensitivity
     sensitivity_cm = cm[1, 1] / (cm[1, 0] + cm[1, 1])
     sensitivity.append(sensitivity_cm)
@@ -122,7 +116,7 @@ print('------------------------------------------------------')
 
 print('Accuracy', predict)
 print()
-#---------------Calculate mean values for sens, spec, etc.. -------------------------
+#---------------Calculate mean values for sens, spec, etc..
 mean_sensitivity = sum(sensitivity) / len(sensitivity)
 print('mean sensitivity :', mean_sensitivity)
 print('std sensitivity :', np.std(sensitivity))
