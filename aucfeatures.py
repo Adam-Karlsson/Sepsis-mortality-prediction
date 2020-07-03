@@ -66,7 +66,7 @@ def plot_roc_curve(fprs, tprs):
     tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
     # ax.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
  #TODO returar tprs_upper, tprs_lower och mean_fpr
-    return mean_auc, tprs_upper, tprs_lower, mean_fpr
+    return [mean_auc, std_auc]
 
 def compute_roc_auc(index):
     y_predict = clf.predict_proba(X.iloc[index])[:, 1]
@@ -86,7 +86,7 @@ fprs, tprs, scores = [], [], []
 
 #TODO skapar kolumnar för de nya värdena i dataframe.
 # Skapa dataframe för mean auc vs number of features
-meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc', 'tprs_upper', 'tprs_lower', 'mean_fpr'])
+meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc', 'std_auc'])
 
 
 
@@ -113,7 +113,7 @@ for index in list_of_features:
     tprs.clear()
     scores.clear()
     #TODO lägger till tprs_upper, tprs_lower, mean_fpr i dataframe
-    meanAucDf.loc[count] = [len(features), result_auc[0], result_auc[1], result_auc[2], result_auc[3]]
+    meanAucDf.loc[count] = [len(features), result_auc[0], result_auc[1]]
     count = count + 1
     print("dropping", index)
     features = features.drop(index)
@@ -121,13 +121,20 @@ for index in list_of_features:
 plt.rcParams["figure.figsize"] = (20, 4.8)
 ax = plt.gca()
 #TODO fylla upp området mellan tprs_lower och tprs_upper
-ax.fill_between(meanAucDf['mean_fpr'], meanAucDf['tprs_lower'], meanAucDf['tprs_upper'], color='grey', alpha=.2,
-                    label=r'$\pm$ 1 std. dev.')
+# print("std auc :", meanAucDf['std_auc'])
+tprs_upper = meanAucDf['mean auc'].to_numpy() + meanAucDf['std_auc'].to_numpy()
+tprs_lower = meanAucDf['mean auc'].to_numpy() - meanAucDf['std_auc'].to_numpy()
+A = meanAucDf['numbers of features'].to_numpy()
+ax.fill_between(A, tprs_lower, tprs_upper, color='grey', alpha=.2, label=r'$\pm$ 1 std. dev.')
 
 
 meanAucDf.plot(kind='line',x='numbers of features',y='mean auc',ax=ax)
 plt.title(predict)
 plt.xticks(np.arange(0, max_x_scale, step = 5))
+plt.yticks(np.arange(5, step = 0.10))
+plt.ylim(0.5, 0.9)
+plt.xlim(1, 91)
+
 plt.minorticks_on()
 
 plt.savefig('meanAuc_vs_features.png', bbox_inches='tight')
