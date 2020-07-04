@@ -42,6 +42,7 @@ def plot_roc_curve_Each_Fold(fprs, tprs, predict):
     ax.fill_between(mean_fpr, tprs_lower, tprs_upper, color='grey', alpha=.2,
                     label=r'$\pm$ 1 std. dev.')
 
+
     # Fine tune and show the plot.
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])

@@ -22,6 +22,7 @@ import os
 import statistics_feature_importance
 from sklearn.model_selection import StratifiedShuffleSplit
 import Plot_ROC_AUC
+import math
 
 
 print(os.getcwd())
@@ -116,35 +117,62 @@ print('------------------------------------------------------')
 
 print('Accuracy', predict)
 print()
-#---------------Calculate mean values for sens, spec, etc..
+#---------------Calculate mean, std and CI for sens, spec, etc..
+Sample_size = math.sqrt(10)
+print('Sample_size :', Sample_size)
+
 mean_sensitivity = sum(sensitivity) / len(sensitivity)
 print('mean sensitivity :', mean_sensitivity)
 print('std sensitivity :', np.std(sensitivity))
+CI_upper_sensitivity = mean_sensitivity + (1.96*np.std(sensitivity)/Sample_size)
+CI_lower_sensitivity = mean_sensitivity - (1.96*np.std(sensitivity)/Sample_size)
+print('CI upper sensitivity :', CI_upper_sensitivity)
+print('CI lower sensitivity :', CI_lower_sensitivity)
 print()
 
 mean_specificity = sum(specificity) / len(specificity)
 print('mean specificity :', mean_specificity)
 print('std specificity :', np.std(specificity))
+CI_upper_specificity = mean_specificity + (1.96*np.std(specificity)/Sample_size)
+CI_lower_specificity = mean_specificity - (1.96*np.std(specificity)/Sample_size)
+print('CI upper specificity :', CI_upper_specificity)
+print('CI lower specificity :', CI_lower_specificity)
 print()
 
 mean_ppv = sum(ppv) / len(ppv)
 print('mean ppv :', mean_ppv)
 print('std ppv :', np.std(ppv))
+CI_upper_ppv = mean_ppv + (1.96*np.std(ppv)/Sample_size)
+CI_lower_ppv = mean_ppv - (1.96*np.std(ppv)/Sample_size)
+print('CI upper ppv :', CI_upper_ppv)
+print('CI lower ppv :', CI_lower_ppv)
 print()
 
 mean_npv = sum(npv) / len(npv)
 print('mean npv :', mean_npv)
 print('std npv :', np.std(npv))
+CI_upper_npv = mean_npv + (1.96*np.std(npv)/Sample_size)
+CI_lower_npv = mean_npv - (1.96*np.std(npv)/Sample_size)
+print('CI upper npv :', CI_upper_npv)
+print('CI lower npv :', CI_lower_npv)
 print()
 
 mean_LR_pos = sum(LR_pos) / len(LR_pos)
 print('mean LR+ :', mean_LR_pos)
 print('std LR+ :', np.std(LR_pos))
+CI_upper_LR_pos = mean_LR_pos + (1.96*np.std(LR_pos)/Sample_size)
+CI_lower_LR_pos = mean_LR_pos - (1.96*np.std(LR_pos)/Sample_size)
+print('CI upper LR+ :', CI_upper_LR_pos)
+print('CI lower LR+ :', CI_lower_LR_pos)
 print()
 
 mean_LR_neg = sum(LR_neg) / len(LR_neg)
 print('mean LR- :', mean_LR_neg)
 print('std LR- :', np.std(LR_neg))
+CI_upper_LR_neg = mean_LR_neg + (1.96*np.std(LR_neg)/Sample_size)
+CI_lower_LR_neg = mean_LR_neg - (1.96*np.std(LR_neg)/Sample_size)
+print('CI upper LR- :', CI_upper_LR_neg)
+print('CI lower LR- :', CI_lower_LR_neg)
 print()
 
 #------------- Calculate meanvalue for feature importance ------------------------------
