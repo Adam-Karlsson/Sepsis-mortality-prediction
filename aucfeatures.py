@@ -94,8 +94,8 @@ meanAucDf = pd.DataFrame(columns=['numbers of features', 'mean auc', 'std_auc'])
 max_x_scale = len(features)
 count = 0
 for index in list_of_features:
-    if index == 'Audiosensitivity':
-        break
+    # if index == 'Audiosensitivity':
+    #    break
 
     X = df.loc[:, features]
     y = df[predict]
