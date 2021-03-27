@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
+import math
 
 def plot_roc_curve_Each_Fold(fprs, tprs, predict):
     """Plot the Receiver Operating Characteristic from a list
@@ -34,6 +35,11 @@ def plot_roc_curve_Each_Fold(fprs, tprs, predict):
             lw=2, alpha=.8)
     print("mean_auc :",mean_auc)
     print('std auc :', std_auc)
+    Sample_size = math.sqrt(10)
+    CI_upper_auc = mean_auc + (1.96 * std_auc / Sample_size)
+    CI_lower_auc = mean_auc - (1.96 * std_auc / Sample_size)
+    print('CI upper auc :', CI_upper_auc)
+    print('CI lower auc :', CI_lower_auc)
 
     # Plot the standard deviation around the mean ROC.
     std_tpr = np.std(tprs_interp, axis=0)
@@ -46,10 +52,11 @@ def plot_roc_curve_Each_Fold(fprs, tprs, predict):
     # Fine tune and show the plot.
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
+    ax.set_xlabel('False Positive Rate', fontsize = 16)
+    ax.set_ylabel('True Positive Rate', fontsize = 16)
     ax.set_title('Receiver operating characteristic')
     ax.legend(loc="lower right")
+    ax.tick_params(axis='both', labelsize = 14)
     # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
 
     plt.title(predict)
@@ -80,8 +87,7 @@ def plot_roc_curve_only_mean(fprs, tprs, predict):
 
 
     # Plot the luck line.
-    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r',
-             label='Luck', alpha=.8)
+    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', label='Luck', alpha=.8)
 
     # Plot the mean ROC.
     mean_tpr = np.mean(tprs_interp, axis=0)
@@ -102,10 +108,11 @@ def plot_roc_curve_only_mean(fprs, tprs, predict):
     # Fine tune and show the plot.
     ax.set_xlim([-0.05, 1.05])
     ax.set_ylim([-0.05, 1.05])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
+    ax.set_xlabel('False Positive Rate', fontsize = 16)
+    ax.set_ylabel('True Positive Rate', fontsize = 16)
     ax.set_title('Receiver operating characteristic')
     ax.legend(loc="lower right")
+    ax.tick_params(axis='both', labelsize=14)
     # TODO: Stopp Blocking mode, Grafen stoppar koden tills fönstret stängs
 
     plt.title(predict)
