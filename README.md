@@ -1,5 +1,5 @@
 # Sepsis-mortality-prediction
-Costume code for mortality prediction 
+Costume code for mortality prediction. 
 
 The dataset used in this code (population_full.csv) is available from the corresponding author on reasonable request.
 For more information regarding the variables included in the dataset, see supplemental file 1.
