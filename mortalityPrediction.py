@@ -8,6 +8,7 @@ import os
 from sklearn.model_selection import StratifiedShuffleSplit
 import Plot_ROC_AUC
 import math
+import shap
 
 
 def compute_roc_auc(index):
@@ -59,6 +60,11 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     scores.append((auc_score_train, auc_score))
     fprs.append(fpr)
     tprs.append(tpr)
+    # Calculate shap
+    clf_explainer = shap.TreeExplainer(clf)
+    clf_shap_values = clf_explainer.shap_values(X.iloc[test])
+    list_shap_values.append(clf_shap_values)
+    list_test_sets.append(test)
     # Calculate confusion matrix
     predictions = clf.predict(X.iloc[test])
     cm = confusion_matrix(y.iloc[test], predictions)
@@ -85,6 +91,16 @@ for (train, test), i in zip(cv.split(X, y), range(10)):
     dFrame['importance_' + str(index)] = clf.feature_importances_
     dFrame.index = features
     index = index + 1
+
+# Combining result from all SHAP-iterations and create summary plot
+test_set = list_test_sets[0]
+shap_values = np.array(list_shap_values[0])
+for i in range(1,len(list_test_sets)):
+    test_set = np.concatenate((test_set,list_test_sets[i]),axis=0)
+    shap_values = np.concatenate((shap_values,np.array(list_shap_values[i])),axis=1)
+
+x = pd.DataFrame(X.iloc[test_set],columns=features)
+shap.summary_plot(shap_values[1], x)
 
 print('Accuracy', predict)
 print()
